@@ -6,7 +6,16 @@ import cv2
 # Initialize the Flask application
 app = Flask(__name__)
 
-
+#UPON REQUEST receiving image from Sender
+@app.route('/getNoteText',methods=['GET','POST'])
+def GetNoteText():
+    if request.method == 'POST':
+        file = request.files['pic']
+        filename = file.filename
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        processImage(filename)
+    else:
+        return "Y U NO USE POST?"
 # route http posts to this method
 @app.route('/api/test', methods=['POST'])
 def test():
@@ -33,7 +42,7 @@ def get_image():
 
     return send_from_directory('./', 'get.jpg', as_attachment=True)
     #return send_file(img, mimetype='image/gif', as_attachment=True)
-#UPON REQUEST receiving image from Sender
+
 
 
 # start flask app
