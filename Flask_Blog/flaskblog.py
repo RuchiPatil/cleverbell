@@ -1,35 +1,32 @@
 from datetime import datetime
 from forms import RegistrationForm, LoginForm
-from flask import Flask, render_template, url_for, flash, redirect  #importing flask class and templates folders **ensure folder is called Templates with an s
+from flask import Flask, render_template, url_for, flash, redirect, request  #importing flask class and templates folders **ensure folder is called Templates with an s
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import current_user
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__) #creating app variable "__name__ is name of module"
 app.config['SECRET_KEY'] = '41c3c5eef769fc02139d720817780103'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app)
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///friends.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///register.db'
+db = SQLAlchemy(app)  #initialize the db
 
+
+#create a model to see if db works
+#class Friends(db.Model):
+   # id = db.Column(db.Integer, primary_key=True)
+   # name =  db.Column(db.String(200), nullable=False)
+   # date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    #create a fuction to return a string when we add to db
+   # def __repr__(self):
+    #    return '<Name %r>' % self.id
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
-    password = db.Column(db.String(60), nullable=False)
-    posts = db.relationship('Post', backref='author', lazy=True)
-
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
-
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    def __repr__(self):
-        return f"Post('{self.title}', '{self.date_posted}')"
+    username = db.Column(db.String(15), unique=True)
+    email = db.Column(db.String(50), unique=True)
+    password = db.Column(db.String(80))
 
 posts = [
 
@@ -60,24 +57,53 @@ def home():
 def about():
     return render_template('about.html',title='About') 
 
+@app.route("/friends", methods=['GET', 'POST']) #rootpage of website about page
+def friends():
+
+    if request.method == "POST":
+        friend_name = request.form['name']
+        new_friend = Friends(name=friend_name)
+
+        #push to db
+        try:
+            db.session.add(new_friend)
+            db.session.commit()
+            return redirect('/friends')
+        except:
+            return "there was an error adding your Friends  "
+    else:
+        friends = Friends.query.order_by(Friends.date_created)
+        return render_template('friends.html',title='friends')
+
 @app.route("/register", methods=['GET', 'POST']) #rootpage of website about page
 def register():
     form = RegistrationForm()
-    if form.validate_on_submit():
-        flash(f'Account Created for {form.username.data}!', 'success') #validate that user acc is created
-        return redirect(url_for('home'))
-    return render_template('register.html', title='Register', form=form)
 
+    if form.validate_on_submit():
+        new_user = User(username=form.username.data, email=form.email.data, password=form.password.data)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return '<h1>New User has been created</h1>'
+     #   return '<h1>' + form.username.data + '' + form.email.data + '' + form.password.data + '</h1>'
+
+    return render_template('register.html', form=form)
+    
 @app.route("/login", methods=['GET', 'POST']) #rootpage of website about page
 def login():
     form = LoginForm()
+
     if form.validate_on_submit():
-        if form.email.data == 'sendu319@hotmail.com' and form.password.data == 'Lithu1995':
-            flash('You have been logged in!', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash('Login UnSuccessful. please check and try again', 'danger')
-    return render_template('login.html', title='Login', form=form)
+        user = User.query.filter_by(username=form.username.data).first()
+        if user: #check if user exist
+            if user.password == form.password.data:
+                return redirect(url_for('home'))
+
+        return '<h1>Invalid username or password</h1>'
+
+       # return '<h1>' + form.username.data + ' ' + form.password.data + '</h1>'
+
+    return render_template('login.html',form=form)
 
 if __name__ == '__main__': #name is main
     app.run(debug=True) #only true if running the script directly
