@@ -8,13 +8,6 @@ app = Flask(__name__)
 
 new_name = 'stst'
 # route http posts to this method
-@app.route('/friendname/<string:name>', methods=['POST'])
-def get_store(name):
-    #iterate over get_stores
-    for store in stores:
-        if store['name'] == name:
-            return jsonify(store)
-    return jsonify({'message': "store not found"})
 
 @app.route('/saveimage/<string:name>', methods=['POST'])
 def test(name):
