@@ -1,6 +1,14 @@
-  [
+[
     {
-      "first_name":"Vik",
-      "image": "images/Viktor/vik_face.jpg"
+        "first_name": "Vik",
+        "image": "images/Viktor/vik_face.jpg"
+    },
+    {
+        "first_name": "stst",
+        "image": "images/stst/stst.jpg"
+    },
+    {
+        "first_name": "bob",
+        "image": "images/bob/bob.jpg"
     }
-  ]
+]

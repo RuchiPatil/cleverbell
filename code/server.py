@@ -9,12 +9,17 @@ app = Flask(__name__)
 new_name = 'stst'
 # route http posts to this method
 
+@app.route('/zuko_print', methods=['POST'])
+def zuko_print():
+    print request.json()
+
 @app.route('/saveimage/<string:name>', methods=['POST'])
-def test(name):
+def saveimage(name):
     global new_name
     new_name = name
     r = request
     # convert string of image data to uint8
+    
     print(name)
     nparr = np.frombuffer(r.data, np.uint8)
     # decode image
@@ -32,8 +37,8 @@ def test(name):
     return Response(response=response_pickled, status=200, mimetype="application/json")
 
 #UPON REQUEST sending image to Receiver (and then deleteing image 1 minute after sending)
-@app.route("/lol_idk")
-def lol_idk():
+@app.route("/old_download_image")
+def old_download_image():
     send_from_directory('./', f"{new_name}.jpg", as_attachment=True)
     return Response(response=new_name, mimetype="text")
     #return send_file(img, mimetype='image/gif', as_attachment=True)
