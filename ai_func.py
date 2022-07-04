@@ -2,6 +2,7 @@ import urllib.request
 import face_recognition
 import json
 import cv2
+import os
 
 '''
 AI Module : Functions that perform detection and recognition; are
@@ -17,17 +18,43 @@ def get_encodings():
 
     with open('USERS/users.json', 'r') as file:
         data = json.load(file)
-    face
+
+
 
     for x in range(0, len(data)):
         print(x)
         reco_image = face_recognition.load_image_file(data[x]['image'])
         print(data[x]['image'])
         face_encoding = face_recognition.face_encodings(reco_image)[0]
+
+        if len(face_encoding) > 0:
+            #save face encoding in json: user_enc.json
+            jsonFile = 'USER_ENC/user_enc.json'
+            newObj = []
+            if os.path.isfile(jsonFile) is False:
+                raise Exception("users.json File NOT found.")
+
+            with open(jsonFile) as fp:
+                newObj = json.load(fp)
+            #print(newObj)
+            enc = face_encoding.tolist()
+
+            newObj.append({
+            "first_name": data[x]['first_name'],
+            "enc": enc
+            })
+            #
+
+            with open(jsonFile, 'w') as json_file:
+                json.dump(newObj, json_file, indent=4, separators=(',', ': '))
+        else:
+            print("no face")
+
+
         print(33)
 
-        known_face_encodings.append(face_encoding)
-        known_face_names.append(data[x]['first_name'])
+        #known_face_encodings.append(face_encoding)
+        #known_face_names.append(data[x]['first_name'])
 
     print('list of known face encodings:' + str(known_face_encodings))
     print('list of known face names:' + str(known_face_names))
@@ -71,3 +98,6 @@ def compare(site_cap_image):
         cv2.imshow('Identified', cv_site_cap_image)
 
         return person_name
+
+
+get_encodings()
